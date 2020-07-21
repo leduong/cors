@@ -1,0 +1,69 @@
+{
+  "name": "cors",
+  "description": "Node.js CORS middleware",
+  "version": "2.8.5",
+  "author": "Le Dang Duong <me@leduong.com> (https://github.com/leduong/)",
+  "license": "MIT",
+  "keywords": [
+    "cors",
+    "express",
+    "connect",
+    "hotlinking",
+    "middleware"
+  ],
+  "repository": "leduong/cors",
+  "main": "./lib/hotlinking.js",
+  "dependencies": {
+    "object-assign": "^4",
+    "request": "^2.88.2",
+    "vary": "^1"
+  },
+  "devDependencies": {
+    "after": "0.8.2",
+    "eslint": ">=6.2.2",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-import": ">=2.18.0",
+    "eslint-plugin-node": ">=9.1.0",
+    "eslint-plugin-promise": ">=4.2.1",
+    "eslint-plugin-standard": ">=4.0.0",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "mocha": "8.0.1",
+    "nodemon": "^2.0.4",
+    "nyc": "^15.1.0",
+    "prettier": "^2.0.5",
+    "sqlite3": "^5.0.0",
+    "supertest": "4.0.2"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/hotlinking.js",
+    "CONTRIBUTING.md",
+    "HISTORY.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "scripts": {
+    "test": "npm run lint && npm run test-ci",
+    "test-ci": "nyc --reporter=html --reporter=text mocha --require test/support/env",
+    "lint": "eslint lib test"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,scss}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}
