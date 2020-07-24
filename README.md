@@ -242,4 +242,4 @@ Code for that demo can be found here:
 [npm-image]: https://img.shields.io/npm/v/cors.svg
 [npm-url]: https://npmjs.org/package/cors
 [travis-image]: https://img.shields.io/travis/expressjs/cors/master.svg
-[travis-url]: https://travis-ci.org/expressjs/cors
+[travis-url]: https://travis-ci.org/leduong/cors

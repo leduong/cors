@@ -1,11 +1,9 @@
 (function () {
-  'use strict';
-
-  var express = require('express'),
-    supertest = require('supertest'),
-    cors = require('../lib');
-
-  var app, corsOptions;
+  const express = require('express');
+  const supertest = require('supertest');
+  const cors = require('../lib/hotlinking').cors;
+  let app;
+  let corsOptions;
 
   /* -------------------------------------------------------------------------- */
 
@@ -17,14 +15,14 @@
     maxAge: 3600,
   };
   app.options('/api/login', cors(corsOptions));
-  app.post('/api/login', cors(corsOptions), function (req, res) {
+  app.post('/api/login', cors(corsOptions), (req, res) => {
     res.send('LOGIN');
   });
 
   /* -------------------------------------------------------------------------- */
 
-  describe('issue  #2', function () {
-    it('OPTIONS works', function (done) {
+  describe('issue  #2', () => {
+    it('OPTIONS works', (done) => {
       supertest(app)
         .options('/api/login')
         .set('Origin', 'http://example.com')
@@ -32,7 +30,7 @@
         .expect('Access-Control-Allow-Origin', 'http://example.com')
         .end(done);
     });
-    it('POST works', function (done) {
+    it('POST works', (done) => {
       supertest(app)
         .post('/api/login')
         .set('Origin', 'http://example.com')

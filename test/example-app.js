@@ -1,22 +1,20 @@
 (function () {
-  'use strict';
-
-  var express = require('express'),
-    supertest = require('supertest'),
-    cors = require('../lib');
-
-  var simpleApp, complexApp;
+  const express = require('express');
+  const supertest = require('supertest');
+  const cors = require('../lib/hotlinking').cors;
+  let simpleApp;
+  let complexApp;
 
   /* -------------------------------------------------------------------------- */
 
   simpleApp = express();
-  simpleApp.head('/', cors(), function (req, res) {
+  simpleApp.head('/', cors(), (req, res) => {
     res.status(204).send();
   });
-  simpleApp.get('/', cors(), function (req, res) {
+  simpleApp.get('/', cors(), (req, res) => {
     res.send('Hello World (Get)');
   });
-  simpleApp.post('/', cors(), function (req, res) {
+  simpleApp.post('/', cors(), (req, res) => {
     res.send('Hello World (Post)');
   });
 
@@ -24,15 +22,15 @@
 
   complexApp = express();
   complexApp.options('/', cors());
-  complexApp.delete('/', cors(), function (req, res) {
+  complexApp.delete('/', cors(), (req, res) => {
     res.send('Hello World (Delete)');
   });
 
   /* -------------------------------------------------------------------------- */
 
-  describe('example app(s)', function () {
-    describe('simple methods', function () {
-      it('GET works', function (done) {
+  describe('Example app(s)', () => {
+    describe('simple methods', () => {
+      it('GET works', (done) => {
         supertest(simpleApp)
           .get('/')
           .expect(200)
@@ -40,14 +38,14 @@
           .expect('Hello World (Get)')
           .end(done);
       });
-      it('HEAD works', function (done) {
+      it('HEAD works', (done) => {
         supertest(simpleApp)
           .head('/')
           .expect(204)
           .expect('Access-Control-Allow-Origin', '*')
           .end(done);
       });
-      it('POST works', function (done) {
+      it('POST works', (done) => {
         supertest(simpleApp)
           .post('/')
           .expect(200)
@@ -57,15 +55,15 @@
       });
     });
 
-    describe('complex methods', function () {
-      it('OPTIONS works', function (done) {
+    describe('complex methods', () => {
+      it('OPTIONS works', (done) => {
         supertest(complexApp)
           .options('/')
           .expect(204)
           .expect('Access-Control-Allow-Origin', '*')
           .end(done);
       });
-      it('DELETE works', function (done) {
+      it('DELETE works', (done) => {
         supertest(complexApp)
           .del('/')
           .expect(200)

@@ -1,36 +1,34 @@
-'use strict';
-
-var EventEmitter = require('events').EventEmitter;
-var util = require('util');
+const { EventEmitter } = require('events');
+const util = require('util');
 
 (function () {
-  'use strict';
+  const after = require('after');
+  const assert = require('assert');
+  const cors = require('../lib/hotlinking').cors;
 
-  var after = require('after');
-  var assert = require('assert');
-  var cors = require('..');
-
-  var fakeRequest = function (method, headers) {
+  const fakeRequest = function (method, headers) {
     return new FakeRequest(method, headers);
   };
 
-  var fakeResponse = function () {
+  const fakeResponse = function () {
     return new FakeResponse();
   };
 
-  describe('cors', function () {
-    it('does not alter `options` configuration object', function () {
-      var options = Object.freeze({
+  describe('cors', () => {
+    it('does not alter `options` configuration object', () => {
+      const options = Object.freeze({
         origin: 'custom-origin',
       });
-      assert.doesNotThrow(function () {
+      assert.doesNotThrow(() => {
         cors(options);
       });
     });
 
-    it('passes control to next middleware', function (done) {
+    it('passes control to next middleware', (done) => {
       // arrange
-      var req, res, next;
+      let req;
+      let res;
+      let next;
       req = fakeRequest('GET');
       res = fakeResponse();
       next = function () {
@@ -41,85 +39,87 @@ var util = require('util');
       cors()(req, res, next);
     });
 
-    it('shortcircuits preflight requests', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('OPTIONS');
-      var res = new FakeResponse();
+    it('shortcircuits preflight requests', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('OPTIONS');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         assert.equal(res.statusCode, 204);
         cb();
       });
 
-      cors()(req, res, function (err) {
+      cors()(req, res, (err) => {
         cb(err || new Error('should not be called'));
       });
     });
 
-    it('can configure preflight success response status code', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('OPTIONS');
-      var res = new FakeResponse();
+    it('can configure preflight success response status code', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('OPTIONS');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         assert.equal(res.statusCode, 200);
         cb();
       });
 
       // act
-      cors({ optionsSuccessStatus: 200 })(req, res, function (err) {
+      cors({ optionsSuccessStatus: 200 })(req, res, (err) => {
         cb(err || new Error('should not be called'));
       });
     });
 
-    it('doesn\'t shortcircuit preflight requests with preflightContinue option', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('OPTIONS');
-      var res = new FakeResponse();
+    it('doesn\'t shortcircuit preflight requests with preflightContinue option', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('OPTIONS');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         cb(new Error('should not be called'));
       });
 
-      cors({ preflightContinue: true })(req, res, function (err) {
+      cors({ preflightContinue: true })(req, res, (err) => {
         if (err) return cb(err);
         setTimeout(cb, 10);
       });
     });
 
-    it('normalizes method names', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('options');
-      var res = new FakeResponse();
+    it('normalizes method names', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('options');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         assert.equal(res.statusCode, 204);
         cb();
       });
 
-      cors()(req, res, function (err) {
+      cors()(req, res, (err) => {
         cb(err || new Error('should not be called'));
       });
     });
 
-    it('includes Content-Length response header', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('OPTIONS');
-      var res = new FakeResponse();
+    it('includes Content-Length response header', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('OPTIONS');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         assert.equal(res.getHeader('Content-Length'), '0');
         cb();
       });
 
-      cors()(req, res, function (err) {
+      cors()(req, res, (err) => {
         cb(err || new Error('should not be called'));
       });
     });
 
-    it('no options enables default CORS to all origins', function (done) {
+    it('no options enables default CORS to all origins', (done) => {
       // arrange
-      var req, res, next;
+      let req;
+      let res;
+      let next;
       req = fakeRequest('GET');
       res = fakeResponse();
       next = function () {
@@ -133,12 +133,12 @@ var util = require('util');
       cors()(req, res, next);
     });
 
-    it('OPTION call with no options enables default CORS to all origins and methods', function (done) {
-      var cb = after(1, done);
-      var req = new FakeRequest('OPTIONS');
-      var res = new FakeResponse();
+    it('OPTION call with no options enables default CORS to all origins and methods', (done) => {
+      const cb = after(1, done);
+      const req = new FakeRequest('OPTIONS');
+      const res = new FakeResponse();
 
-      res.on('finish', function () {
+      res.on('finish', () => {
         assert.equal(res.statusCode, 204);
         assert.equal(res.getHeader('Access-Control-Allow-Origin'), '*');
         assert.equal(
@@ -148,17 +148,17 @@ var util = require('util');
         cb();
       });
 
-      cors()(req, res, function (err) {
+      cors()(req, res, (err) => {
         cb(err || new Error('should not be called'));
       });
     });
 
-    describe('passing static options', function () {
-      it('overrides defaults', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
-        var options = {
+    describe('passing static options', () => {
+      it('overrides defaults', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
+        const options = {
           origin: 'http://example.com',
           methods: ['FOO', 'bar'],
           headers: ['FIZZ', 'buzz'],
@@ -166,7 +166,7 @@ var util = require('util');
           maxAge: 123,
         };
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.statusCode, 204);
           assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'http://example.com');
           assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'FOO,bar');
@@ -176,16 +176,16 @@ var util = require('util');
           cb();
         });
 
-        cors(options)(req, res, function (err) {
+        cors(options)(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('matches request origin against regexp', function (done) {
-        var req = fakeRequest('GET');
-        var res = fakeResponse();
-        var options = { origin: /:\/\/(.+\.)?example.com$/ };
-        cors(options)(req, res, function (err) {
+      it('matches request origin against regexp', (done) => {
+        const req = fakeRequest('GET');
+        const res = fakeResponse();
+        const options = { origin: /:\/\/(.+\.)?example.com$/ };
+        cors(options)(req, res, (err) => {
           assert.ifError(err);
           assert.equal(res.getHeader('Access-Control-Allow-Origin'), req.headers.origin);
           assert.equal(res.getHeader('Vary'), 'Origin');
@@ -193,11 +193,11 @@ var util = require('util');
         });
       });
 
-      it('matches request origin against array of origin checks', function (done) {
-        var req = fakeRequest('GET');
-        var res = fakeResponse();
-        var options = { origin: [/foo\.com$/, 'http://example.com'] };
-        cors(options)(req, res, function (err) {
+      it('matches request origin against array of origin checks', (done) => {
+        const req = fakeRequest('GET');
+        const res = fakeResponse();
+        const options = { origin: [/foo\.com$/, 'http://example.com'] };
+        cors(options)(req, res, (err) => {
           assert.ifError(err);
           assert.equal(res.getHeader('Access-Control-Allow-Origin'), req.headers.origin);
           assert.equal(res.getHeader('Vary'), 'Origin');
@@ -205,11 +205,11 @@ var util = require('util');
         });
       });
 
-      it('doesn\'t match request origin against array of invalid origin checks', function (done) {
-        var req = fakeRequest('GET');
-        var res = fakeResponse();
-        var options = { origin: [/foo\.com$/, 'bar.com'] };
-        cors(options)(req, res, function (err) {
+      it('doesn\'t match request origin against array of invalid origin checks', (done) => {
+        const req = fakeRequest('GET');
+        const res = fakeResponse();
+        const options = { origin: [/foo\.com$/, 'bar.com'] };
+        cors(options)(req, res, (err) => {
           assert.ifError(err);
           assert.equal(res.getHeader('Access-Control-Allow-Origin'), undefined);
           assert.equal(res.getHeader('Vary'), 'Origin');
@@ -217,9 +217,12 @@ var util = require('util');
         });
       });
 
-      it('origin of false disables cors', function (done) {
+      it('origin of false disables cors', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           origin: false,
           methods: ['FOO', 'bar'],
@@ -243,9 +246,12 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('can override origin', function (done) {
+      it('can override origin', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           origin: 'http://example.com',
         };
@@ -261,9 +267,12 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('includes Vary header for specific origins', function (done) {
+      it('includes Vary header for specific origins', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           origin: 'http://example.com',
         };
@@ -279,9 +288,12 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('appends to an existing Vary header', function (done) {
+      it('appends to an existing Vary header', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           origin: 'http://example.com',
         };
@@ -298,9 +310,11 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('origin defaults to *', function (done) {
+      it('origin defaults to *', (done) => {
         // arrange
-        var req, res, next;
+        let req;
+        let res;
+        let next;
         req = fakeRequest('GET');
         res = fakeResponse();
         next = function () {
@@ -313,9 +327,12 @@ var util = require('util');
         cors()(req, res, next);
       });
 
-      it('specifying true for origin reflects requesting origin', function (done) {
+      it('specifying true for origin reflects requesting origin', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           origin: true,
         };
@@ -331,10 +348,13 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('should allow origin when callback returns true', function (done) {
-        var req, res, next, options;
+      it('should allow origin when callback returns true', (done) => {
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
-          origin: function (sentOrigin, cb) {
+          origin(sentOrigin, cb) {
             cb(null, true);
           },
         };
@@ -348,10 +368,13 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('should not allow origin when callback returns false', function (done) {
-        var req, res, next, options;
+      it('should not allow origin when callback returns false', (done) => {
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
-          origin: function (sentOrigin, cb) {
+          origin(sentOrigin, cb) {
             cb(null, false);
           },
         };
@@ -369,10 +392,13 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('should not override options.origin callback', function (done) {
-        var req, res, next, options;
+      it('should not override options.origin callback', (done) => {
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
-          origin: function (sentOrigin, cb) {
+          origin(sentOrigin, cb) {
             cb(null, sentOrigin === 'http://example.com');
           },
         };
@@ -402,31 +428,31 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('can override methods', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
-        var options = {
+      it('can override methods', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
+        const options = {
           methods: ['method1', 'method2'],
         };
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.statusCode, 204);
           assert.equal(res.getHeader('Access-Control-Allow-Methods'), 'method1,method2');
           cb();
         });
 
-        cors(options)(req, res, function (err) {
+        cors(options)(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('methods defaults to GET, HEAD, PUT, PATCH, POST, DELETE', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('methods defaults to GET, HEAD, PUT, PATCH, POST, DELETE', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.statusCode, 204);
           assert.equal(
             res.getHeader('Access-Control-Allow-Methods'),
@@ -435,46 +461,49 @@ var util = require('util');
           cb();
         });
 
-        cors()(req, res, function (err) {
+        cors()(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('can specify allowed headers as array', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('can specify allowed headers as array', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'header1,header2');
           assert.equal(res.getHeader('Vary'), undefined);
           cb();
         });
 
-        cors({ allowedHeaders: ['header1', 'header2'] })(req, res, function (err) {
+        cors({ allowedHeaders: ['header1', 'header2'] })(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('can specify allowed headers as string', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('can specify allowed headers as string', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'header1,header2');
           assert.equal(res.getHeader('Vary'), undefined);
           cb();
         });
 
-        cors({ allowedHeaders: 'header1,header2' })(req, res, function (err) {
+        cors({ allowedHeaders: 'header1,header2' })(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('specifying an empty list or string of allowed headers will result in no response header for allowed headers', function (done) {
+      it('specifying an empty list or string of allowed headers will result in no response header for allowed headers', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           allowedHeaders: [],
         };
@@ -491,25 +520,28 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('if no allowed headers are specified, defaults to requested allowed headers', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('if no allowed headers are specified, defaults to requested allowed headers', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Allow-Headers'), 'x-header-1, x-header-2');
           assert.equal(res.getHeader('Vary'), 'Access-Control-Request-Headers');
           cb();
         });
 
-        cors()(req, res, function (err) {
+        cors()(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('can specify exposed headers as array', function (done) {
+      it('can specify exposed headers as array', (done) => {
         // arrange
-        var req, res, options, next;
+        let req;
+        let res;
+        let options;
+        let next;
         options = {
           exposedHeaders: ['custom-header1', 'custom-header2'],
         };
@@ -528,9 +560,12 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('can specify exposed headers as string', function (done) {
+      it('can specify exposed headers as string', (done) => {
         // arrange
-        var req, res, options, next;
+        let req;
+        let res;
+        let options;
+        let next;
         options = {
           exposedHeaders: 'custom-header1,custom-header2',
         };
@@ -549,9 +584,12 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('specifying an empty list or string of exposed headers will result in no response header for exposed headers', function (done) {
+      it('specifying an empty list or string of exposed headers will result in no response header for exposed headers', (done) => {
         // arrange
-        var req, res, next, options;
+        let req;
+        let res;
+        let next;
+        let options;
         options = {
           exposedHeaders: [],
         };
@@ -567,24 +605,26 @@ var util = require('util');
         cors(options)(req, res, next);
       });
 
-      it('includes credentials if explicitly enabled', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('includes credentials if explicitly enabled', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Allow-Credentials'), 'true');
           cb();
         });
 
-        cors({ credentials: true })(req, res, function (err) {
+        cors({ credentials: true })(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('does not includes credentials unless explicitly enabled', function (done) {
+      it('does not includes credentials unless explicitly enabled', (done) => {
         // arrange
-        var req, res, next;
+        let req;
+        let res;
+        let next;
         req = fakeRequest('GET');
         res = fakeResponse();
         next = function () {
@@ -597,39 +637,41 @@ var util = require('util');
         cors()(req, res, next);
       });
 
-      it('includes maxAge when specified', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('includes maxAge when specified', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Max-Age'), '456');
           cb();
         });
 
-        cors({ maxAge: 456 })(req, res, function (err) {
+        cors({ maxAge: 456 })(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('includes maxAge when specified and equals to zero', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
+      it('includes maxAge when specified and equals to zero', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Max-Age'), '0');
           cb();
         });
 
-        cors({ maxAge: 0 })(req, res, function (err) {
+        cors({ maxAge: 0 })(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('does not includes maxAge unless specified', function (done) {
+      it('does not includes maxAge unless specified', (done) => {
         // arrange
-        var req, res, next;
+        let req;
+        let res;
+        let next;
         req = fakeRequest('GET');
         res = fakeResponse();
         next = function () {
@@ -643,10 +685,13 @@ var util = require('util');
       });
     });
 
-    describe('passing a function to build options', function () {
-      it('handles options specified via callback', function (done) {
+    describe('passing a function to build options', () => {
+      it('handles options specified via callback', (done) => {
         // arrange
-        var req, res, next, delegate;
+        let req;
+        let res;
+        let next;
+        let delegate;
         delegate = function (req2, cb) {
           cb(null, {
             origin: 'delegate.com',
@@ -664,31 +709,34 @@ var util = require('util');
         cors(delegate)(req, res, next);
       });
 
-      it('handles options specified via callback for preflight', function (done) {
-        var cb = after(1, done);
-        var req = new FakeRequest('OPTIONS');
-        var res = new FakeResponse();
-        var delegate = function (req2, cb) {
+      it('handles options specified via callback for preflight', (done) => {
+        const cb = after(1, done);
+        const req = new FakeRequest('OPTIONS');
+        const res = new FakeResponse();
+        const delegate = function (req2, cb) {
           cb(null, {
             origin: 'delegate.com',
             maxAge: 1000,
           });
         };
 
-        res.on('finish', function () {
+        res.on('finish', () => {
           assert.equal(res.getHeader('Access-Control-Allow-Origin'), 'delegate.com');
           assert.equal(res.getHeader('Access-Control-Max-Age'), '1000');
           cb();
         });
 
-        cors(delegate)(req, res, function (err) {
+        cors(delegate)(req, res, (err) => {
           cb(err || new Error('should not be called'));
         });
       });
 
-      it('handles error specified via callback', function (done) {
+      it('handles error specified via callback', (done) => {
         // arrange
-        var req, res, next, delegate;
+        let req;
+        let res;
+        let next;
+        let delegate;
         delegate = function (req2, cb) {
           cb('some error');
         };
@@ -723,19 +771,19 @@ function FakeResponse() {
 util.inherits(FakeResponse, EventEmitter);
 
 FakeResponse.prototype.end = function end() {
-  var response = this;
+  const response = this;
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     response.emit('finish');
   });
 };
 
 FakeResponse.prototype.getHeader = function getHeader(name) {
-  var key = name.toLowerCase();
+  const key = name.toLowerCase();
   return this._headers[key];
 };
 
 FakeResponse.prototype.setHeader = function setHeader(name, value) {
-  var key = name.toLowerCase();
+  const key = name.toLowerCase();
   this._headers[key] = value;
 };
