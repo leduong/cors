@@ -3,9 +3,13 @@ node_js:
   - "10.21"
   - "12.18"
   - "14.4"
+services:
+  - redis-server
+
 cache:
   directories:
     - node_modules
+
 before_install:
   - |
     # Setup utility functions
